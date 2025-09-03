@@ -1,5 +1,4 @@
 from news.forms import CommentForm
-
 from yanews.settings import NEWS_COUNT_ON_HOME_PAGE
 
 
@@ -21,9 +20,10 @@ def test_comment_order(client, news, comments, news_detail_url):
     news_obj = response.context['news']
     comments = news_obj.comment_set.all()
 
-    assert len(comments) == 2
-    assert comments[0].text == 'Старый комментарий'
-    assert comments[1].text == 'Новый комментарий'
+    # Проверка ссортировки комментариев от старых к новым
+    comments_list = list(comments)
+    for i in range(len(comments_list) - 1):
+        assert comments_list[i].created <= comments_list[i + 1].created
 
 
 def test_news_order(client, order_news, home_url):
@@ -33,11 +33,12 @@ def test_news_order(client, order_news, home_url):
     response = client.get(home_url)
 
     assert 'news_list' in response.context
-    new_list = response.context['news_list']
+    news_list = response.context['news_list']
 
-    assert len(new_list) >= 2
-    assert new_list[0].text == 'Новый текст'
-    assert new_list[1].text == 'Старый текст'
+    # Проверка сортировки новостей, от новых к старым
+    assert len(news_list) >= 2
+    for i in range(len(news_list) - 1):
+        assert news_list[i].date >= news_list[i + 1].date
 
 
 def test_anonymous_client_has_no_form(client, news, news_detail_url):

@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from django.urls import reverse
 
-from notes.tests.test_content import BaseNoteList
+from notes.tests.conftest import BaseNoteList
 
 
 class TestRoutes(BaseNoteList):

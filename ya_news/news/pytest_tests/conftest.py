@@ -1,12 +1,12 @@
 import pytest
-
 from datetime import datetime, timedelta
 
-from django.test.client import Client
 from django.contrib.auth import get_user_model
+from django.test.client import Client
 from django.urls import reverse
 
 from news.models import News, Comment
+from yanews.settings import BAD_WORDS, NEWS_COUNT_ON_HOME_PAGE
 
 User = get_user_model()
 
@@ -93,23 +93,43 @@ def news_on_home_page():
 
 @pytest.fixture
 def comments(news, author):
+    comment_list = []
     today = datetime.today()
-
     yesterday = today - timedelta(days=1)
 
-    comment1 = Comment.objects.create(
-        news=news,
-        author=author,
-        text='Старый комментарий',
-        created=yesterday
-    )
-    comment2 = Comment.objects.create(
-        news=news,
-        author=author,
-        text='Новый комментарий',
-        created=today
-    )
-    return [comment1, comment2]
+    for i in range(NEWS_COUNT_ON_HOME_PAGE):
+        comment = Comment.objects.create(
+            news=news,
+            author=author,
+            text=f'Комментарий {i}',
+            created=yesterday if i % 2 == 0 else today
+        )
+        comment_list.append(comment)
+    return comment_list
+
+
+@pytest.fixture
+def bad_words_data():
+    bad_words_data = {
+        'text': f'Комментарий пользователя с плохим словом {BAD_WORDS[0]}'
+    }
+    return bad_words_data
+
+
+@pytest.fixture
+def comment_data():
+    comment_data = {
+        'text': 'Комментарий'
+    }
+    return comment_data
+
+
+@pytest.fixture
+def edit_data():
+    edit_data = {
+        'text': 'Новый текст'
+    }
+    return edit_data
 
 
 @pytest.fixture
@@ -119,21 +139,18 @@ def news_detail_url(news):
 
 @pytest.fixture
 def order_news():
+    news_list = []
     today = datetime.today()
-
     yesterday = today - timedelta(days=1)
 
-    news1 = News.objects.create(
-        title='Старая новость',
-        text='Старый текст',
-        date=yesterday,
-    )
-    news2 = News.objects.create(
-        title='Новая новость',
-        text='Новый текст',
-        date=today,
-    )
-    return [news1, news2]
+    for i in range(10):
+        news = News.objects.create(
+            title=f'Новость {i}',
+            text=f'текст {i}',
+            date=yesterday if i % 2 == 0 else today
+        )
+        news_list.append(news)
+    return news_list
 
 
 @pytest.fixture
